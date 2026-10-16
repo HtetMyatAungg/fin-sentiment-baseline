@@ -1,0 +1,50 @@
+# Financial Sentiment Baseline
+
+Classifies financial news sentences as **positive**, **negative** or **neutral** using TF-IDF features and logistic regression.
+
+## Results
+
+| Metric | Data | Score |
+|---|---|---|
+| Macro F1 (5-fold CV, mean ± std) | Train | 0.655 ± 0.028 |
+| **Macro F1** | **Test (484 sentences)** | **0.657** |
+| 95% bootstrap CI | Test | [0.604, 0.708] |
+| Bootstrap standard error | Test | 0.026 |
+
+The CI shows the range where the model's true macro F1 likely sits, given the limited test set. Any competing model needs to clear this range to count as clearly better.
+
+## Data
+
+- **Dataset:** Financial PhraseBank, `[FILL: which file, e.g. Sentences_AllAgree.txt]`
+- **Classes:** neutral (~60%), positive (~25%), negative (~15%)
+- **Split:** train / validation / test `[FILL: sizes or ratio]`, test = 484 sentences
+- **License:** `MIT`
+
+![Label distribution](label_distribution.png)
+
+## Method
+
+1. **Vectorise** sentences with TF-IDF
+2. **Model:** logistic regression (`random_state=0`)
+3. **Cross-validation:** 5-fold on the train set, scored by macro F1
+4. **Test once:** final model evaluated on the held-out test set a single time
+5. **Bootstrap CI:** 1,000 paired resamples of the test predictions, percentile method
+
+## What I learned
+
+- **Text must become numbers** before a model can learn from it (TF-IDF).
+- **Macro F1 beats accuracy on imbalanced data.** It averages F1 across classes, so small classes count equally. A model that always predicts neutral gets ~0.60 accuracy but only ~0.25 macro F1.
+- **CV ± std and bootstrap CI answer different questions.** CV measures how stable the training recipe is. The bootstrap CI measures how certain the final test score is.
+- **Chance level is a sanity check.** My first bootstrap gave a CI around 0.33, which is random guessing for 3 classes. The bug: labels and predictions were resampled separately, so they no longer came from the same sentences. Fixed with `paired=True`.
+
+## Next steps
+
+- Compare against a `DummyClassifier` baseline
+- Try `class_weight="balanced"` and tune regularisation strength
+- Compare performance across annotator agreement levels
+- `[FILL: anything you actually plan for Week 2]`
+
+## How to run
+
+    pip install scikit-learn scipy numpy pandas matplotlib
+    python finance-baseline.py
